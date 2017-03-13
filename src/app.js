@@ -210,7 +210,17 @@ function capture (baseURL, filename) {
         ensureSchemaAdded(body, responsesSpec[statusCode].schema);
     }
 
-    var currentOptions;
+    function isJSON (str) {
+        try {
+            JSON.parse(str);
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    }
+
+    var currentRequest = {};
 
     intercept(http, 'request', function (options, callback) {
         if (typeof options === 'string') {
@@ -221,18 +231,6 @@ function capture (baseURL, filename) {
             return;
         }
 
-        withSpec(function (spec) {
-            var path = getPathFrom(options),
-                query = getQueryFrom(options),
-                pathSpec = getPathSpec(path, spec),
-                operationSpec = getOperationSpec(options.method, pathSpec);
-
-            ensureParametersAdded(query, 'query', operationSpec.parameters);
-            if (isTemplated(path)) {
-                ensureParametersAdded({ id: getTemplateIdFrom(path) }, 'path', operationSpec.parameters);
-            }
-        });
-
         var callbackWithInterceptor = function (response) {
             var packets = [];
 
@@ -242,12 +240,31 @@ function capture (baseURL, filename) {
 
             response.on('end', function () {
                 withSpec(function (spec) {
-                    var body = JSON.parse(Buffer.concat(packets).toString('utf8')),
-                        path = getPathFrom(currentOptions),
+                    // From request...
+                    var path = getPathFrom(currentRequest.options),
+                        query = getQueryFrom(currentRequest.options),
                         pathSpec = getPathSpec(path, spec),
-                        operationSpec = getOperationSpec(currentOptions.method, pathSpec);
+                        operationSpec = getOperationSpec(currentRequest.options.method, pathSpec),
+                        resourceType = getResourceTypeFrom(path),
+                        bodyParam = {},
+                        responseBody = Buffer.concat(packets).toString('utf8');
 
-                    ensureResponseAdded(response.statusCode, body, operationSpec.responses);
+                    if (!isJSON(responseBody)) {
+                        // Don't capture for non-JSON responses
+                        return;
+                    }
+
+                    ensureParametersAdded(query, 'query', operationSpec.parameters);
+                    if (isTemplated(path)) {
+                        ensureParametersAdded({ id: getTemplateIdFrom(path) }, 'path', operationSpec.parameters);
+                    }
+
+                    if (isJSON(currentRequest.body)) {
+                        bodyParam[resourceType] = JSON.parse(currentRequest.body);
+                        ensureParametersAdded(bodyParam, 'body', operationSpec.parameters);
+                    }
+
+                    ensureResponseAdded(response.statusCode, JSON.parse(responseBody), operationSpec.responses);
                 });
             });
 
@@ -257,22 +274,13 @@ function capture (baseURL, filename) {
         };
 
         // Save for next call
-        currentOptions = options;
+        currentRequest = { options: options, body: '' };
 
         // Return changed callback
         return [options, callbackWithInterceptor];
     }, function (request) {
         intercept(request, 'write', function (body) {
-            withSpec(function (spec) {
-                var path = getPathFrom(currentOptions),
-                    pathSpec = getPathSpec(path, spec),
-                    operationSpec = getOperationSpec(currentOptions.method, pathSpec),
-                    resourceType = getResourceTypeFrom(path),
-                    param = {};
-
-                param[resourceType] = JSON.parse(body);
-                ensureParametersAdded(param, 'body', operationSpec.parameters);
-            });
+            currentRequest.body = body;
         });
     });
 

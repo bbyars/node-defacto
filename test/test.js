@@ -9,6 +9,9 @@ var client = require('./httpClient');
 client.get('/imposters?replayable=true').then(function (response) {
     console.log(response.statusCode);
 
+    return client.get('/docs/gettingStarted');
+}).then(function (response) {
+    console.log(response.statusCode);
     return client.get('/imposters?replayable=true&removeProxies=true');
 }).then(function (response) {
     console.log(response.statusCode);
