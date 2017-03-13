@@ -37,6 +37,8 @@ JSON body is captured, and all fields and types are added to the spec.
 
 === Limitations
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/bbyars/node-litigate.svg)](https://greenkeeper.io/)
+
 * Path parameters are detected by assuming a RESTful URL scheme with no sub-resources,
 so /customers/123 will capture 123 as the `id` parameter.
 * `node-litigate` assumes JSON.
