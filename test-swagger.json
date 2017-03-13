@@ -9,6 +9,89 @@
                         "name": "replayable",
                         "in": "query",
                         "type": "string"
+                    },
+                    {
+                        "name": "removeProxies",
+                        "in": "query",
+                        "type": "string"
+                    }
+                ]
+            },
+            "post": {
+                "responses": {},
+                "parameters": [
+                    {
+                        "name": "imposters",
+                        "in": "body",
+                        "schema": {
+                            "properties": {
+                                "protocol": {
+                                    "type": "string"
+                                },
+                                "port": {
+                                    "type": "number"
+                                },
+                                "stubs": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "responses": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "proxy": {
+                                                            "properties": {
+                                                                "to": {
+                                                                    "type": "string"
+                                                                },
+                                                                "mode": {
+                                                                    "type": "string"
+                                                                },
+                                                                "predicateGenerators": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "matches": {
+                                                                                "properties": {
+                                                                                    "path": {
+                                                                                        "type": "boolean"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "is": {
+                                                            "properties": {
+                                                                "body": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "predicates": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "equals": {
+                                                            "properties": {
+                                                                "path": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 ]
             }

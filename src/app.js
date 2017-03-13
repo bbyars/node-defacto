@@ -6,23 +6,31 @@ var http = require('http'),
     util = require('util'),
     templatePattern = /\/(\w+)\/(\w+)/;
 
-function intercept (obj, fn, interceptor) {
+function defined (obj) {
+    return typeof obj !== 'undefined';
+}
+
+function type (obj) {
+    if (util.isArray(obj)) {
+        return 'array';
+    }
+    else {
+        return typeof obj;
+    }
+}
+
+function intercept (obj, fn, interceptor, resultProcessor) {
     var original = obj[fn];
     obj[fn] = function () {
         var args = Array.prototype.slice.call(arguments);
         interceptor.apply(this, args);
-
         var result = original.apply(this, args);
-        result.chain = function (fn, chained) {
-            intercept(result, fn, chained);
-            return result;
-        };
+
+        if (defined(resultProcessor)) {
+            resultProcessor(result);
+        }
         return result;
     }
-}
-
-function defined (obj) {
-    return typeof obj !== 'undefined';
 }
 
 function capture (baseURL, filename) {
@@ -72,7 +80,6 @@ function capture (baseURL, filename) {
         if (isTemplated(path)) {
             path = templatize(path);
         }
-        console.log('PATH: ' + path);
 
         return path;
     }
@@ -94,8 +101,12 @@ function capture (baseURL, filename) {
     }
 
     function getResourceTypeFrom (path) {
-        var resourceType = path.match(templatePattern)[1];
-        return isTemplated(path) ? singularize(resourceType) : resourceType;
+        if (isTemplated(path)) {
+            return singularize(path.match(templatePattern)[1]);
+        }
+        else {
+            return path.replace('/', '');
+        }
     }
 
     function getOperationSpec (method, pathSpec) {
@@ -109,25 +120,79 @@ function capture (baseURL, filename) {
         return pathSpec[method.toLowerCase()];
     }
 
-    function ensureParametersAdded (params, type, paramsSpec) {
+    function ensureAllPropertiesAdded (obj, propertiesSpec) {
+        Object.keys(obj).forEach(function (name) {
+            if (!defined(propertiesSpec[name])) {
+                propertiesSpec[name] = {};
+            }
+
+            if (type(obj[name]) === 'object' || type(obj[name]) === 'array') {
+                ensureSchemaAdded(obj[name], propertiesSpec[name]);
+            }
+            else {
+                if (!defined(propertiesSpec[name].type)) {
+                    propertiesSpec[name].type = type(obj[name]);
+                }
+                if (propertiesSpec[name].type !== type(obj[name])) {
+                    console.error(name + ' parameter of both type ' + propertiesSpec[name].type + ' and ' + type(obj[name]));
+                }
+            }
+        });
+    }
+
+    function ensureSchemaAdded (obj, schemaSpec) {
+        switch(type(obj)) {
+            case 'array':
+                if (!defined(schemaSpec.type)) {
+                    schemaSpec.type = 'array';
+                    schemaSpec.items = {};
+                }
+
+                if (schemaSpec.type !== 'array') {
+                    console.error('Parameter is array in some contexts but not others');
+                }
+                obj.forEach(function (item) {
+                    ensureSchemaAdded(item, schemaSpec.items);
+                });
+                break;
+
+            case 'object':
+                if (!defined(schemaSpec.properties)) {
+                    schemaSpec.properties = {};
+                }
+                ensureAllPropertiesAdded(obj, schemaSpec.properties);
+                break;
+
+            default:
+                console.log('ERROR: SCHEMA CALLED WITH ' + JSON.stringify(obj));
+        }
+    }
+
+    function ensureParametersAdded (params, paramType, paramsSpec) {
         Object.keys(params).forEach(function (name) {
             var spec = paramsSpec.find(function (param) {
                 return param.name === name;
             });
             if (!defined(spec)) {
-                paramsSpec.push({
-                    name: name,
-                    in: type,
-                    type: typeof params[name]
-                });
+                spec = { name: name, in: paramType };
+                if (paramType === 'body') {
+                    spec.schema = {};
+                }
+                else {
+                    spec.type = type(params[name]);
+                }
+                paramsSpec.push(spec);
             }
-            else {
-                if (spec.in !== type) {
-                    console.error('Spec parameter %s in both %s and %s', name, spec.in, type);
-                }
-                if (spec.type !== typeof params[name]) {
-                    console.error('Spec parameter %s of type %s and %s', spec.type, typeof params[name]);
-                }
+
+            if (spec.in !== paramType) {
+                console.error('Spec parameter %s in both %s and %s', name, spec.in, paramType);
+            }
+            if (paramType !== 'body' && spec.type !== type(params[name])) {
+                console.error('Spec parameter %s of type %s and %s', spec.type, type(params[name]));
+            }
+
+            if (paramType === 'body') {
+                ensureSchemaAdded(params[name], spec.schema);
             }
         });
     }
@@ -169,6 +234,19 @@ function capture (baseURL, filename) {
 
         // Save for next call
         currentOptions = options;
+    }, function (request) {
+        intercept(request, 'write', function (body) {
+            withSpec(function (spec) {
+                var path = getPathFrom(currentOptions),
+                    pathSpec = getPathSpec(path, spec),
+                    operationSpec = getOperationSpec(currentOptions.method, pathSpec),
+                    resourceType = getResourceTypeFrom(path),
+                    param = {};
+
+                param[resourceType] = JSON.parse(body);
+                ensureParametersAdded(param, 'body', operationSpec.parameters);
+            });
+        });
     });
 
     // Initialize with bare-bones spec

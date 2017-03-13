@@ -44,6 +44,8 @@ so /customers/123 will capture 123 as the `id` parameter.
 * It assumes no tests are running in parallel
 * It does nothing with headers, more or less assuming application/json
 * It assumes you never use chunked encoding and always write the request body in one fell swoop
+* All types are strings. Future versions will look for true/false, integers, etc
+* It does not detect required fields. Future versions can assume required if ALL tests pass it in
 
 ## Contributing
 
