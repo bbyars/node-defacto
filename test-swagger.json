@@ -1,0 +1,17 @@
+{
+    "swagger": "2.0",
+    "paths": {
+        "/imposters": {
+            "get": {
+                "responses": {},
+                "parameters": [
+                    {
+                        "name": "replayable",
+                        "in": "query",
+                        "type": "string"
+                    }
+                ]
+            }
+        }
+    }
+}
