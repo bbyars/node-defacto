@@ -1,4 +1,4 @@
-= node-litigate
+# node-litigate
 
 `node-litigate` asserts your API contract, represented as an OpenAPI/Swagger
 specification. `litigate` allows you to make two types of assertions:
@@ -6,7 +6,7 @@ specification. `litigate` allows you to make two types of assertions:
 * The contract specification is up-to-date and correct
 * Everything in the contract specification has been tested
 
-== How to use it
+## How to use it
 
 `node-litigate` needs to be initialized before any tests are run. In mocha, you can
 use a [root-level before hook](https://mochajs.org/#root-level-hooks) to do the trick:
@@ -26,7 +26,7 @@ the `host` and `basePath` elements at the root of the OpenAPI specification.
 The complete OpenAPI specification that the tests expect is captured in
 `test-swagger.json`, which can be diffed to the actual spec for the assertions.
 
-== How does it work
+## How does it work
 
 `node-litigate` wraps the `http` module, capturing all client requests and responses
 that match the `host` and `basePath` given in the first parameter to the `capture`
@@ -35,7 +35,7 @@ to the spec. Each time a new input `parameter`, it is added to the spec. Each ti
 a new `response` is detected, it is added to the spec. Every request and response
 JSON body is captured, and all fields and types are added to the spec.
 
-=== Limitations
+## Limitations
 
 * Path parameters are detected by assuming a RESTful URL scheme with no sub-resources,
 so /customers/123 will capture 123 as the `id` parameter.
@@ -45,7 +45,7 @@ so /customers/123 will capture 123 as the `id` parameter.
 * It does nothing with headers, more or less assuming application/json
 * It assumes you never use chunked encoding and always write the request body in one fell swoop
 
-== Contributing
+## Contributing
 
 `node-litigate` is not written in ES6 because it needs to support the oldest
 supported version of node (4.0), which does not fully support ES6.
