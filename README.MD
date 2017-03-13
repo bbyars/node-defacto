@@ -38,7 +38,8 @@ JSON body is captured, and all fields and types are added to the spec.
 ## Limitations
 
 * Path parameters are detected by assuming a RESTful URL scheme with no sub-resources,
-so /customers/123 will capture 123 as the `id` parameter.
+so /customers/123 will capture 123 as the `id` parameter. The parameter will always
+be named `id`
 * `node-litigate` assumes JSON.
 * It assumes you're testing against an HTTP API rather than an HTTPS one
 * It assumes no tests are running in parallel

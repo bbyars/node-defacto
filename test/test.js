@@ -4,6 +4,8 @@ require('../src/app.js').capture('http://localhost:2525/', 'test-swagger.json');
 
 var client = require('./httpClient');
 
+// assumes mountebank running on port 2525 and nothing on port 8080
+
 client.get('/imposters?replayable=true').then(function (response) {
     console.log(response.statusCode);
 
@@ -13,7 +15,7 @@ client.get('/imposters?replayable=true').then(function (response) {
 
     return client.post('/imposters', {
         protocol: 'http',
-        port: 3000,
+        port: 8080,
         stubs: [
             {
                 responses: [
@@ -38,6 +40,15 @@ client.get('/imposters?replayable=true').then(function (response) {
             }
         ]
     });
+}).then(function (response) {
+    console.log(response.statusCode);
+    return client.get('/imposters/8080');
+}).then(function (response) {
+    console.log(response.statusCode);
+    return client.del('/imposters/8080');
+}).then(function (response) {
+    console.log(response.statusCode);
+    return client.del('/imposters');
 }).then(function (response) {
     console.log(response.statusCode);
 }).done();

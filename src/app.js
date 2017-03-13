@@ -4,7 +4,7 @@ var http = require('http'),
     fs = require('fs'),
     url = require('url'),
     util = require('util'),
-    templatePattern = /\/(\w+)\/(\w+)/;
+    templatePattern = /\/([^\/]+)\/([^\/]+)/;
 
 function defined (obj) {
     return typeof obj !== 'undefined';
@@ -23,8 +23,10 @@ function intercept (obj, fn, interceptor, resultProcessor) {
     var original = obj[fn];
     obj[fn] = function () {
         var args = Array.prototype.slice.call(arguments);
-        interceptor.apply(this, args);
-        var result = original.apply(this, args);
+
+        // Allow returning new args array to change parameters to intercepted function
+        var nextArgs = interceptor.apply(this, args) || args;
+        var result = original.apply(this, nextArgs);
 
         if (defined(resultProcessor)) {
             resultProcessor(result);
@@ -197,21 +199,20 @@ function capture (baseURL, filename) {
         });
     }
 
-    function getResponse (response, responsesSpec) {
-        if (!defined(responsesSpec[response.statusCode])) {
-            responsesSpec[response.statusCode] = {
-                description: '',
+    function ensureResponseAdded (statusCode, body, responsesSpec) {
+        if (!defined(responsesSpec[statusCode])) {
+            responsesSpec[statusCode] = {
                 schema: {},
-                examples: { 'application/json': response.body } // Only grabs first example...
+                examples: { 'application/json': body } // Only grabs first example...
             };
         }
 
-        return responsesSpec[response.statusCode];
+        ensureSchemaAdded(body, responsesSpec[statusCode].schema);
     }
 
     var currentOptions;
 
-    intercept(http, 'request', function (options) {
+    intercept(http, 'request', function (options, callback) {
         if (typeof options === 'string') {
             options = url.parse(options);
         }
@@ -232,8 +233,34 @@ function capture (baseURL, filename) {
             }
         });
 
+        var callbackWithInterceptor = function (response) {
+            var packets = [];
+
+            response.on('data', function (chunk) {
+                packets.push(chunk);
+            });
+
+            response.on('end', function () {
+                withSpec(function (spec) {
+                    var body = JSON.parse(Buffer.concat(packets).toString('utf8')),
+                        path = getPathFrom(currentOptions),
+                        pathSpec = getPathSpec(path, spec),
+                        operationSpec = getOperationSpec(currentOptions.method, pathSpec);
+
+                    ensureResponseAdded(response.statusCode, body, operationSpec.responses);
+                });
+            });
+
+            if (defined(callback)) {
+                callback(response);
+            }
+        };
+
         // Save for next call
         currentOptions = options;
+
+        // Return changed callback
+        return [options, callbackWithInterceptor];
     }, function (request) {
         intercept(request, 'write', function (body) {
             withSpec(function (spec) {
