@@ -14,6 +14,12 @@ function type (obj) {
     if (util.isArray(obj)) {
         return 'array';
     }
+    else if (typeof obj === 'number' && obj.toString().indexOf('.') < 0) {
+        return 'integer';
+    }
+    else if (obj === null) {
+        return 'null';
+    }
     else {
         return typeof obj;
     }
@@ -32,13 +38,12 @@ function intercept (obj, fn, interceptor, resultProcessor) {
             resultProcessor(result);
         }
         return result;
-    }
+    };
 }
 
 function capture (baseURL, filename) {
-    var parts = url.parse(baseURL),
-        host = parts.host,
-        basePath = parts.path;
+    var host = url.parse(baseURL).host,
+        basePath = url.parse(baseURL).pathname;
 
     function read () {
         return JSON.parse(fs.readFileSync(filename));
@@ -59,8 +64,8 @@ function capture (baseURL, filename) {
         if (options.port) {
             requestHost += ':' + options.port;
         }
-        return requestHost.toLowerCase() === host.toLowerCase()
-            && options.path.indexOf(basePath) === 0;
+        return requestHost.toLowerCase() === host.toLowerCase() &&
+            options.path.indexOf(basePath) === 0;
     }
 
     function isTemplated (path) {
@@ -98,7 +103,7 @@ function capture (baseURL, filename) {
         return spec.paths[path];
     }
 
-    function singularize(resourceType) {
+    function singularize (resourceType) {
         return resourceType.replace(/s$/, '');
     }
 
@@ -115,66 +120,79 @@ function capture (baseURL, filename) {
         if (!defined(pathSpec[method.toLowerCase()])) {
             pathSpec[method.toLowerCase()] = {
                 responses: {},
-                parameters: []
+                parameters: [],
+                consumes: ['application/json'],
+                produces: ['application/json']
             };
         }
 
         return pathSpec[method.toLowerCase()];
     }
 
+    function ensureTypeAdded (spec, obj) {
+        if (!defined(spec.type)) {
+            spec.type = type(obj);
+        }
+
+        // I saw the array for type field here: https://developer.nytimes.com/most_popular_api_v2.json/swagger.json
+        if (type(spec.type) === 'string' && spec.type !== type(obj)) {
+            spec.type = [spec.type, type(obj)];
+        }
+        else if (type(spec.type) === 'array' && spec.type.indexOf(type(obj)) < 0) {
+            spec.type.push(type(obj));
+        }
+    }
+
     function ensureAllPropertiesAdded (obj, propertiesSpec) {
         Object.keys(obj).forEach(function (name) {
-            if (!defined(propertiesSpec[name])) {
-                propertiesSpec[name] = {};
-            }
+            propertiesSpec[name] = propertiesSpec[name] || {};
 
             if (type(obj[name]) === 'object' || type(obj[name]) === 'array') {
                 ensureSchemaAdded(obj[name], propertiesSpec[name]);
             }
             else {
-                if (!defined(propertiesSpec[name].type)) {
-                    propertiesSpec[name].type = type(obj[name]);
-                }
-                if (propertiesSpec[name].type !== type(obj[name])) {
-                    console.error(name + ' parameter of both type ' + propertiesSpec[name].type + ' and ' + type(obj[name]));
-                }
+                ensureTypeAdded(propertiesSpec[name], obj[name]);
             }
         });
     }
 
     function ensureSchemaAdded (obj, schemaSpec) {
-        switch(type(obj)) {
-            case 'array':
-                if (!defined(schemaSpec.type)) {
-                    schemaSpec.type = 'array';
-                    schemaSpec.items = {};
-                }
+        ensureTypeAdded(schemaSpec, obj);
 
-                if (schemaSpec.type !== 'array') {
-                    console.error('Parameter is array in some contexts but not others');
-                }
+        if (obj === null) {
+            return;
+        }
+
+        switch (type(obj)) {
+            case 'array':
+                schemaSpec.items = schemaSpec.items || {};
                 obj.forEach(function (item) {
                     ensureSchemaAdded(item, schemaSpec.items);
                 });
                 break;
 
             case 'object':
-                if (!defined(schemaSpec.properties)) {
-                    schemaSpec.properties = {};
-                }
+                schemaSpec.properties = schemaSpec.properties || {};
                 ensureAllPropertiesAdded(obj, schemaSpec.properties);
                 break;
 
-            default:
-                console.log('ERROR: SCHEMA CALLED WITH ' + JSON.stringify(obj));
+            case 'string':
+                // Save values for possible enums
+                // Heuristic: if length < 10, possible enum
+                if (obj.length < 10) {
+                    schemaSpec.enum = schemaSpec.enum || [];
+                    if (schemaSpec.enum.indexOf(obj) < 0) {
+                        schemaSpec.push(obj);
+                    }
+                }
+                break;
         }
     }
 
     function ensureParametersAdded (params, paramType, paramsSpec) {
         Object.keys(params).forEach(function (name) {
-            var spec = paramsSpec.find(function (param) {
-                return param.name === name;
-            });
+            var spec = paramsSpec.find(function (param) { return param.name === name; });
+
             if (!defined(spec)) {
                 spec = { name: name, in: paramType };
                 if (paramType === 'body') {
@@ -189,8 +207,9 @@ function capture (baseURL, filename) {
             if (spec.in !== paramType) {
                 console.error('Spec parameter %s in both %s and %s', name, spec.in, paramType);
             }
-            if (paramType !== 'body' && spec.type !== type(params[name])) {
-                console.error('Spec parameter %s of type %s and %s', spec.type, type(params[name]));
+
+            if (paramType !== 'body') {
+                ensureTypeAdded(spec, params[name]);
             }
 
             if (paramType === 'body') {
