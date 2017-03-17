@@ -20,6 +20,9 @@ function type (obj) {
     else if (obj === null) {
         return 'null';
     }
+    else if (obj === 'true' || obj === 'false') {
+        return 'boolean';
+    }
     else {
         return typeof obj;
     }
@@ -41,16 +44,16 @@ function intercept (obj, fn, interceptor, resultProcessor) {
     };
 }
 
-function capture (baseURL, filename) {
-    var host = url.parse(baseURL).host,
-        basePath = url.parse(baseURL).pathname;
+function capture (options) {
+    var host = url.parse(options.baseURL).host,
+        basePath = url.parse(options.baseURL).pathname;
 
     function read () {
-        return JSON.parse(fs.readFileSync(filename));
+        return JSON.parse(fs.readFileSync(options.filename));
     }
 
     function write (spec) {
-        fs.writeFileSync(filename, JSON.stringify(spec, null, 4));
+        fs.writeFileSync(options.filename, JSON.stringify(spec, null, 4));
     }
 
     function withSpec (handler) {
@@ -59,25 +62,29 @@ function capture (baseURL, filename) {
         write(spec);
     }
 
-    function shouldCapture (options) {
-        var requestHost = options.hostname || options.host || 'localhost';
-        if (options.port) {
-            requestHost += ':' + options.port;
-        }
-        return requestHost.toLowerCase() === host.toLowerCase() &&
-            options.path.indexOf(basePath) === 0;
-    }
-
     function isTemplated (path) {
         return templatePattern.test(path);
     }
 
-    function templatize (path) {
-        return util.format('/%s/{id}', path.match(templatePattern)[1]);
-    }
-
     function getTemplateIdFrom (path) {
         return path.match(templatePattern)[2];
+    }
+
+    function getPathParameterNameFrom (path) {
+        var base = '/' + path.match(templatePattern)[1],
+            match = options.paths.find(function (givenPath) {
+                return isTemplated(givenPath) && givenPath.indexOf(base) === 0;
+            });
+        if (match) {
+            return getTemplateIdFrom(match);
+        }
+        else {
+            return 'id';
+        }
+    }
+
+    function templatize (path) {
+        return util.format('/%s/%s', path.match(templatePattern)[1], getPathParameterNameFrom(path));
     }
 
     function getPathFrom (requestOptions) {
@@ -93,6 +100,18 @@ function capture (baseURL, filename) {
 
     function getQueryFrom (requestOptions) {
         return url.parse(requestOptions.path, true).query;
+    }
+
+    function shouldCapture (requestOptions) {
+        var requestHost = requestOptions.hostname || requestOptions.host || 'localhost',
+            path = getPathFrom(requestOptions);
+
+        if (requestOptions.port) {
+            requestHost += ':' + requestOptions.port;
+        }
+        return requestHost.toLowerCase() === host.toLowerCase() &&
+            requestOptions.path.indexOf(basePath) === 0 &&
+            options.paths.indexOf(path) >= 0;
     }
 
     function getPathSpec (path, spec) {
@@ -241,12 +260,23 @@ function capture (baseURL, filename) {
 
     var currentRequest = {};
 
-    intercept(http, 'request', function (options, callback) {
-        if (typeof options === 'string') {
-            options = url.parse(options);
+    intercept(http, 'request', function (requestOptions, callback) {
+        if (typeof requestOptions === 'string') {
+            requestOptions = url.parse(requestOptions);
         }
 
-        if (!shouldCapture(options)) {
+        if (!shouldCapture(requestOptions)) {
+            if (requestOptions.path.indexOf('http://localhost:2525/imposters/') === 0) {
+                var requestHost = requestOptions.hostname || requestOptions.host || 'localhost',
+                    path = getPathFrom(requestOptions);
+
+                if (requestOptions.port) {
+                    requestHost += ':' + requestOptions.port;
+                }
+                console.log('REQUESTHOST: ' + requestHost + ', HOST: ' + host);
+                console.log('PATH: ' + path + ', BASEPATH: ' + basePath);
+                console.log(JSON.stringify(options.paths));
+            }
             return;
         }
 
@@ -275,7 +305,10 @@ function capture (baseURL, filename) {
 
                     ensureParametersAdded(query, 'query', operationSpec.parameters);
                     if (isTemplated(path)) {
-                        ensureParametersAdded({ id: getTemplateIdFrom(path) }, 'path', operationSpec.parameters);
+                        var params = {};
+                        params[getPathParameterNameFrom(path)] = getTemplateIdFrom(
+                            url.parse(currentRequest.options.path).pathname.replace(basePath, '/'));
+                        ensureParametersAdded(params, 'path', operationSpec.parameters);
                     }
 
                     if (isJSON(currentRequest.body)) {
@@ -293,10 +326,10 @@ function capture (baseURL, filename) {
         };
 
         // Save for next call
-        currentRequest = { options: options, body: '' };
+        currentRequest = { options: requestOptions, body: '' };
 
         // Return changed callback
-        return [options, callbackWithInterceptor];
+        return [requestOptions, callbackWithInterceptor];
     }, function (request) {
         intercept(request, 'write', function (body) {
             currentRequest.body = body;
