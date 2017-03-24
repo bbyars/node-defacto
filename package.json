@@ -1,16 +1,16 @@
 {
   "name": "node-litigate",
   "version": "0.0.1",
-  "author": "You",
+  "author": "Brandon Byars <brandon.byars@gmail.com>",
   "description": "Captures the API spec that your tests understand",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "YOUR GITHUB REPO URL"
+    "url": "https://github.com/bbyars/node-litigate"
   },
   "bugs": {
-    "url": "YOUR GITHUB ISSUES URL",
-    "email": "YOUR EMAIL ADDRESS"
+    "url": "https://github.com/bbyars/node-litigate/issues",
+    "email": "brandon.byars@gmail.com"
   },
   "keywords": [
     "test",
@@ -20,7 +20,13 @@
     "q": "~1.4.1"
   },
   "devDependencies": {
-    "mocha": "~3.2.0"
+    "mocha": "~3.2.0",
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-eslint": "^19.0.0",
+    "grunt-mocha-test": "~0.13.2",
+    "istanbul": "^0.4.0",
+    "time-grunt": "^1.2.2"
   },
   "engines": {
     "node": ">=4.0"
