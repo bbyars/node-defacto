@@ -53,10 +53,14 @@ and response JSON body is captured, and all fields and types are added to the sp
 * It assumes you're testing against an HTTP API rather than an HTTPS one
 * It assumes no tests are running in parallel
 * It does nothing with headers, more or less assuming application/json (easy to fix)
-* I think it assumes you never use chunked encoding and always write the request body in one fell swoop
+* I think it assumes you never use chunked encoding and always write the request body in one fell swoop (not tested)
 * It does not detect required fields. Future versions can assume required if ALL tests pass it in
+* It makes a best effort at type inference. Should be extensible in the future.
 
 ## Contributing
 
 `node-defacto` is not written in ES6 because it needs to support the oldest
 supported version of node (4.0), which does not fully support ES6.
+
+`./build` should run the build, or (assuming you've previously run an `npm install` and
+an `npm install -g grunt-cli`), `grunt` will do the same.
