@@ -2,15 +2,9 @@ language: node_js
 node_js:
   - "4.4"
 
-env:
-  global:
-    # NPM_API_KEY
-    secure: "foB0MPQdnDtdURLoyc0bAEbdBqs5ST3qygcvZ9LtRKFxHzZxLdONIxnvMdwZWK4hBh1/4mfZU0RgVidQJe2crf4iC8XEa7BNlNg9QEj3AqupintaCIfcj3sxNMloFOgzbr0POAYmwjV7hcVECbO6LVZekbjGaSn847zrAFe1hY7MfWU8AE7mwD+lig9l4LpLPW4knHQSH9amKgI/PGCVBghJWoDklz4We4wBwpBIrT3BC7bYPT2O4e8jOLcS8kWbDMwE5TBm70scrqPRE+v5LVHmspPmj9gyj09IV+yiBl+ILeBnWmwus83186o24/+IPpdwax+tIwXPvdSLWHEXniC9RGo01R6Hmh3H3es0j04WGoQFLUbLLF2SufvU2wks1lGUlIHVgXGHJvraHkR4AEHmmvtn/hPHCacehUytOBG4jlWHYiFOmutbxKCciHBnxU651JqzBSqQhgo/6/9gcZuat74LMkK9DeEOPhkwpBiAmzzgcU0fIlQd/LVd+vfJXmBsMhPJSjFmynmxg4rTMCoiI8WHeiKAVx/mZyqOHP3kw9zBdYlNCO7z0dCzdSohEXvSK5LiVJOdgiqj8TnkJfM1Au0q+krN+wpfxL67Y9T+aYuzNbiHGzw5SWiZmQflBz5FszYpa2OeyxrgO8D2ZHZzMIUoealiYv9VWn2uic0="
-
 install:
-  - bundle install
   - npm install -g npm
 
 script:
   - npm -v
-  - ./build && scripts/publish
+  - ./build
