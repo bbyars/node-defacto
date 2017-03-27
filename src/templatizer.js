@@ -8,7 +8,7 @@ function create (possiblePaths) {
         patterns[path] = {
             namePattern: new RegExp(path.replace(templatePattern, '(\\$1)')),
             valuePattern: new RegExp('^' + path.replace(templatePattern, '([^/]+)') + '$')
-        }
+        };
     });
 
     function findTemplateFor (path) {
@@ -18,6 +18,10 @@ function create (possiblePaths) {
     }
 
     function parametersFor (path) {
+        if (!test(path)) {
+            return {};
+        }
+
         var template = findTemplateFor(path),
             names = patterns[template].namePattern.exec(template),
             values = patterns[template].valuePattern.exec(path),
@@ -36,7 +40,7 @@ function create (possiblePaths) {
 
     function parse (path) {
         return {
-            template: findTemplateFor(path) || path,
+            template: findTemplateFor(path) || '',
             parameters: parametersFor(path)
         };
     }

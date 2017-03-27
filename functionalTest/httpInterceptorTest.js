@@ -6,7 +6,7 @@ var assert = require('assert'),
     httpClient = require('./httpClient'),
     httpServer = require('./httpServer');
 
-describe.only('httpInterceptor', function () {
+describe('httpInterceptor', function () {
     describe('#_intercept', function () {
         promiseIt('should translate request and response into simpler structure', function () {
             var interceptedRequest, interceptedResponse, server, interception;

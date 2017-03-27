@@ -10,7 +10,7 @@ var Templatizer = require('./templatizer'),
 function capture (options) {
     var host = url.parse(options.baseURL).host,
         basePath = url.parse(options.baseURL).pathname,
-        templatizer = Templatizer.create(options.possiblePaths),
+        templatizer = Templatizer.create(options.paths),
         contract = Contract.create(templatizer);
 
     function read () {
@@ -21,29 +21,11 @@ function capture (options) {
         fs.writeFileSync(options.filename, JSON.stringify(spec, null, 4));
     }
 
-    function withSpec (handler) {
-        var spec = read();
-        handler(spec);
-        write(spec);
-    }
-
-    function getPathFrom (requestOptions) {
-        var parts = url.parse(requestOptions.path, true),
+    function getPathFrom (request) {
+        var parts = url.parse(request.path, true),
             path = parts.pathname.replace(basePath, '/');
 
         return templatizer.parse(path).template;
-    }
-
-    function shouldCapture (request) {
-        var requestHost = request.hostname || 'localhost',
-            path = getPathFrom(request);
-
-        if (request.port && request.port !== 80) {
-            requestHost += ':' + request.port;
-        }
-        return requestHost.toLowerCase() === host.toLowerCase() &&
-            request.path.indexOf(basePath) === 0 &&
-            options.possiblePaths.indexOf(path) >= 0;
     }
 
     function isJSON (str) {
@@ -56,15 +38,31 @@ function capture (options) {
         }
     }
 
+    function shouldCapture (request, response) {
+        var requestHost = request.hostname || 'localhost',
+            path = getPathFrom(request);
+
+        return requestHost.toLowerCase() === host.toLowerCase() &&
+            request.path.indexOf(basePath) === 0 &&
+            options.paths.indexOf(path) >= 0 &&
+            isJSON(response.body);
+    }
+
     interceptor.intercept(function (request, response) {
-        if (!shouldCapture(request)) {
+        if (!shouldCapture(request, response)) {
             return;
         }
 
-        withSpec(function (spec) {
-            contract.merge(spec, request, response);
-        });
+        if (isJSON(request.body)) {
+            request.body = JSON.parse(request.body);
+        }
+        if (isJSON(response.body)) {
+            response.body = JSON.parse(response.body);
+        }
 
+        var spec = read();
+        contract.merge(spec, request, response);
+        write(spec);
     });
 
     // Initialize with bare-bones spec

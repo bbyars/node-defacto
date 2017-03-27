@@ -45,5 +45,11 @@ describe('templatizer', function () {
                 parameters: { id: '123', subId: 'abc' }
             });
         });
+
+        it('should return empty string if not in possiblePaths', function () {
+            var templatizer = Templatizer.create([]),
+                template = templatizer.parse('/resource');
+            assert.deepEqual(template, { template: '', parameters: {} });
+        });
     });
 });

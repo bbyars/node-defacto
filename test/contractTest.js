@@ -19,7 +19,7 @@ describe('contract', function () {
                         get: {
                             parameters: [],
                             responses: {
-                                '200': { schema: {} }
+                                '200': { schema: {}, description: '' }
                             }
                         }
                     }
@@ -41,7 +41,7 @@ describe('contract', function () {
                         get: {
                             parameters: [],
                             responses: {
-                                '200': { schema: {} }
+                                '200': { schema: {}, description: '' }
                             }
                         }
                     }
@@ -72,7 +72,7 @@ describe('contract', function () {
                                     type: 'string'
                                 }
                             ],
-                            responses: { '200': { schema: {} } }
+                            responses: { '200': { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -102,7 +102,7 @@ describe('contract', function () {
                                     type: 'string'
                                 }
                             ],
-                            responses: { '200': { schema: {} } }
+                            responses: { '200': { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -137,7 +137,7 @@ describe('contract', function () {
                                     }
                                 }
                             ],
-                            responses: { '200': { schema: {} } }
+                            responses: { '200': { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -184,7 +184,7 @@ describe('contract', function () {
                                     }
                                 }
                             ],
-                            responses: { '200': { schema: {} } }
+                            responses: { '200': { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -232,7 +232,7 @@ describe('contract', function () {
                                     }
                                 }
                             ],
-                            responses: { '200': { schema: {} } }
+                            responses: { '200': { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -256,6 +256,7 @@ describe('contract', function () {
                             parameters: [],
                             responses: {
                                 '200': {
+                                    description: '',
                                     schema: {
                                         type: 'object',
                                         properties: {

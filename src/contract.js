@@ -104,7 +104,7 @@ function create (templatizer) {
 
     function ensureResponseAdded (response, responsesSpec) {
         if (!defined(responsesSpec[response.statusCode])) {
-            responsesSpec[response.statusCode] = { schema: {} };
+            responsesSpec[response.statusCode] = { schema: {}, description: '' };
         }
 
         if (defined(response.body)) {
