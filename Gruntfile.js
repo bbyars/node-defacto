@@ -2,7 +2,7 @@
 
 var fs = require('fs'),
     thisPackage = require('./package.json'),
-    version = process.env.DEFACTO_GRUNT_VERSION || thisPackage.version;
+    version = process.env.NODE_DEFACTO_VERSION || thisPackage.version;
 
 module.exports = function (grunt) {
 
