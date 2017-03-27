@@ -38,6 +38,10 @@ the `host` and `basePath` elements at the root of the OpenAPI specification.
 The complete OpenAPI specification that the tests expect is captured in
 `test-swagger.json`, which can be diffed to the actual spec for the assertions.
 
+There are two diffing tools I'm aware of and evaluating:
+* <https://www.npmjs.com/package/swagger-diff>
+* <https://github.com/civisanalytics/swagger-diff>
+
 ## How does it work
 
 `node-defacto` wraps the `http` module, capturing all client requests and responses
