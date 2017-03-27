@@ -18,7 +18,7 @@ describe('templatizer', function () {
         it('should return false if does not match resource template', function () {
             var templatizer = Templatizer.create(['/resource/{id}']);
             assert.ok(!templatizer.test('/resource'));
-        })
+        });
     });
 
     describe('#parse', function () {

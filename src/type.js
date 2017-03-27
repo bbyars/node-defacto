@@ -3,13 +3,13 @@
 var util = require('util');
 
 function isInteger (value) {
-    return (typeof value === 'number' && value.toString().indexOf('.') < 0)
-        || (typeof value === 'string' && /^\d+$/.test(value));
+    return (typeof value === 'number' && value.toString().indexOf('.') < 0) ||
+           (typeof value === 'string' && /^\d+$/.test(value));
 }
 
 function isDouble (value) {
-    return (typeof value === 'number' && value.toString().indexOf('.') >= 0)
-        || (typeof value === 'string' && /^\d*\.\d+$/.test(value));
+    return (typeof value === 'number' && value.toString().indexOf('.') >= 0) ||
+           (typeof value === 'string' && /^\d*\.\d+$/.test(value));
 }
 
 function isBoolean (value) {

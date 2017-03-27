@@ -1,15 +1,15 @@
 {
-  "name": "node-litigate",
+  "name": "node-defacto",
   "version": "0.0.1",
   "author": "Brandon Byars <brandon.byars@gmail.com>",
-  "description": "Captures the API spec that your tests understand",
+  "description": "Captures the de facto API spec that your tests understand",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bbyars/node-litigate"
+    "url": "https://github.com/bbyars/node-defacto"
   },
   "bugs": {
-    "url": "https://github.com/bbyars/node-litigate/issues",
+    "url": "https://github.com/bbyars/node-defacto/issues",
     "email": "brandon.byars@gmail.com"
   },
   "keywords": [

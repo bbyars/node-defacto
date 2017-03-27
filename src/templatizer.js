@@ -27,7 +27,7 @@ function create (possiblePaths) {
             values = patterns[template].valuePattern.exec(path),
             parameters = {};
 
-        for (var i = 1; i < names.length; i++) {
+        for (var i = 1; i < names.length; i += 1) {
             var name = names[i].replace('{', '').replace('}', '');
             parameters[name] = values[i];
         }

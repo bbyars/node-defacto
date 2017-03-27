@@ -7,13 +7,13 @@ function intercept (interceptor) {
     var currentRequest = {},
         restores = [];
 
-    function _intercept (obj, fn, interceptor, resultProcessor) {
+    function interceptFunction (obj, fn, interceptorFn, resultProcessor) {
         var original = obj[fn];
         obj[fn] = function () {
             var args = Array.prototype.slice.call(arguments);
 
             // Allow returning new args array to change parameters to intercepted function
-            var nextArgs = interceptor.apply(this, args) || args;
+            var nextArgs = interceptorFn.apply(this, args) || args;
             var result = original.apply(this, nextArgs || args);
 
             if (typeof resultProcessor !== 'undefined') {
@@ -25,7 +25,7 @@ function intercept (interceptor) {
         restores.push(function () { obj[fn] = original; });
     }
 
-    _intercept(http, 'request', function (requestOptions, callback) {
+    interceptFunction(http, 'request', function (requestOptions, callback) {
         if (typeof requestOptions === 'string') {
             requestOptions = url.parse(requestOptions);
         }
@@ -68,7 +68,7 @@ function intercept (interceptor) {
         // Return changed callback to add our response callback
         return [requestOptions, callbackWithInterceptor];
     }, function (request) {
-        _intercept(request, 'write', function (body) {
+        interceptFunction(request, 'write', function (body) {
             currentRequest.body = body;
         });
     });

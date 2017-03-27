@@ -7,11 +7,11 @@ var assert = require('assert'),
 describe('contract', function () {
     describe('#merge', function () {
         it('should add path if it does not already exist', function () {
-             var templatizer = Templatizer.create(['/']),
-                 contract = { paths: {} },
-                 request = { path: '/', method: 'GET' },
-                 response = { statusCode: 200 },
-                 spec = Contract.create(templatizer).merge(contract, request, response);
+            var templatizer = Templatizer.create(['/']),
+                contract = { paths: {} },
+                request = { path: '/', method: 'GET' },
+                response = { statusCode: 200 },
+                spec = Contract.create(templatizer).merge(contract, request, response);
 
             assert.deepEqual(spec, {
                 paths: {
@@ -19,7 +19,7 @@ describe('contract', function () {
                         get: {
                             parameters: [],
                             responses: {
-                                '200': { schema: {}, description: '' }
+                                200: { schema: {}, description: '' }
                             }
                         }
                     }
@@ -41,7 +41,7 @@ describe('contract', function () {
                         get: {
                             parameters: [],
                             responses: {
-                                '200': { schema: {}, description: '' }
+                                200: { schema: {}, description: '' }
                             }
                         }
                     }
@@ -72,7 +72,7 @@ describe('contract', function () {
                                     type: 'string'
                                 }
                             ],
-                            responses: { '200': { schema: {}, description: '' } }
+                            responses: { 200: { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -102,7 +102,7 @@ describe('contract', function () {
                                     type: 'string'
                                 }
                             ],
-                            responses: { '200': { schema: {}, description: '' } }
+                            responses: { 200: { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -137,7 +137,7 @@ describe('contract', function () {
                                     }
                                 }
                             ],
-                            responses: { '200': { schema: {}, description: '' } }
+                            responses: { 200: { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -184,7 +184,7 @@ describe('contract', function () {
                                     }
                                 }
                             ],
-                            responses: { '200': { schema: {}, description: '' } }
+                            responses: { 200: { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -223,7 +223,7 @@ describe('contract', function () {
                                                 items: {
                                                     type: 'object',
                                                     properties: {
-                                                       type: { type: 'string' },
+                                                        type: { type: 'string' },
                                                         name: { type: 'string' }
                                                     }
                                                 }
@@ -232,7 +232,7 @@ describe('contract', function () {
                                     }
                                 }
                             ],
-                            responses: { '200': { schema: {}, description: '' } }
+                            responses: { 200: { schema: {}, description: '' } }
                         }
                     }
                 }
@@ -255,7 +255,7 @@ describe('contract', function () {
                         get: {
                             parameters: [],
                             responses: {
-                                '200': {
+                                200: {
                                     description: '',
                                     schema: {
                                         type: 'object',

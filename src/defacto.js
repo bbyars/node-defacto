@@ -4,8 +4,7 @@ var Templatizer = require('./templatizer'),
     Contract = require('./contract'),
     interceptor = require('./httpInterceptor'),
     url = require('url'),
-    fs = require('fs'),
-    http = require('http');
+    fs = require('fs');
 
 function capture (options) {
     var host = url.parse(options.baseURL).host,
