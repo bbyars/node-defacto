@@ -21,6 +21,8 @@ This might be the initialization function for [mountebank](https://github.com/bb
 // Outside of any describe block
 before(function () {
     require('node-litigate').capture({
+        title: 'mountebank',
+        version: '1',
         baseURL: 'http://localhost:2525/',
         paths: ['/', '/imposters', '/imposters/{port}', '/config', '/logs'],
         filename: 'test-swagger.json'

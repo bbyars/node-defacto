@@ -2,26 +2,39 @@
 
 var util = require('util');
 
-function isInteger (obj) {
-    return (typeof obj === 'number' && obj.toString().indexOf('.') < 0)
-        || (typeof obj === 'string' && /^\d+$/.test(obj));
+function isInteger (value) {
+    return (typeof value === 'number' && value.toString().indexOf('.') < 0)
+        || (typeof value === 'string' && /^\d+$/.test(value));
 }
 
-function of (obj) {
-    if (util.isArray(obj)) {
+function isDouble (value) {
+    return (typeof value === 'number' && value.toString().indexOf('.') >= 0)
+        || (typeof value === 'string' && /^\d*\.\d+$/.test(value));
+}
+
+function isBoolean (value) {
+    var booleanWords = ['true', 'false'];
+    return typeof value === 'string' && booleanWords.indexOf(value) >= 0;
+}
+
+function of (value) {
+    if (util.isArray(value)) {
         return 'array';
     }
-    else if (isInteger(obj)) {
+    else if (isInteger(value)) {
         return 'integer';
     }
-    else if (obj === null) {
-        return 'null';
+    else if (isDouble(value)) {
+        return 'number';
     }
-    else if (obj === 'true' || obj === 'false') {
+    else if (isBoolean(value)) {
         return 'boolean';
     }
+    else if (value === null) {
+        return 'null';
+    }
     else {
-        return typeof obj;
+        return typeof value;
     }
 }
 

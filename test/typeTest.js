@@ -32,5 +32,13 @@ describe('type', function () {
         it('should be an integer if value is a numeric string', function () {
             assert.strictEqual('integer', type.of('123'));
         });
+
+        it('should be a number if value is a float', function () {
+            assert.strictEqual('number', type.of(123.4));
+        });
+
+        it('should be a number if value is a numeric string with a decimal point', function () {
+            assert.strictEqual('number', type.of('123.4'));
+        });
     });
 });
